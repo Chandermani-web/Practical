@@ -7,5 +7,32 @@
 </head>
 <body>
     
+    <form action="">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <br>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+        <br>
+        <button type="submit">Login</button>
+    </form>
+    <script>
+        let username = document.querySelector('#username');
+        let password = document.querySelector('#password');
+        let submitBtn = document.querySelector('button[type="submit"]');
+
+        if(!username.value || !password.value){
+            alert("Please fill in all fields.");
+        }
+
+        submitBtn.addEventListener('click', function(event) {
+            event.preventDefault(); // Prevent form submission
+            if(username.value && password.value){
+                alert("Form submitted successfully!");
+            } else {
+                alert("Please fill in all fields.");
+            }
+        });
+    </script>
 </body>
 </html>
