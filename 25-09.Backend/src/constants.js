@@ -1,0 +1,1 @@
+export const DATABASE_NAME = "practice_database_c1_(25-09)";
