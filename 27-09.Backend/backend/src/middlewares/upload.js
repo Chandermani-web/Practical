@@ -4,9 +4,9 @@ import path from 'path';
 const storage = multer.diskStorage({
     destination: function (req, file, cb){
         if(file.mimetype.startsWith("image")){
-            cb(null, "../../public/uploads/images");
+            cb(null, "public/uploads/images");
         } else if(file.mimetype.startsWith("video")){
-            cb(null, "../../public/uploads/videos");
+            cb(null, "public/uploads/videos");
         } else {
             cb({message: "This file is not supported"}, false);
         }
