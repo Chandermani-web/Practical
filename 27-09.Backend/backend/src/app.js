@@ -1,6 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import AuthRouter from './routes/auth.route.js';
+import PostRouter from './routes/post.route.js';
+
 import cookieParser from 'cookie-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -26,6 +28,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.use("/api/auth", AuthRouter);
+app.use("/api/posts", PostRouter);
 
 app.get('/', (req, res) => {
     res.send("API is working");

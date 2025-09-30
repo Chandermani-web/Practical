@@ -1,23 +1,21 @@
-import multer from 'multer';
-import path from 'path';
+import multer from "multer";
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../utils/cloudinary.js";
 
-const storage = multer.diskStorage({
-    destination: function (req, file, cb){
-        if(file.mimetype.startsWith("image")){
-            cb(null, "public/uploads/images");
-        } else if(file.mimetype.startsWith("video")){
-            cb(null, "public/uploads/videos");
-        } else {
-            cb({message: "This file is not supported"}, false);
-        }
-    },
+const storage = new CloudinaryStorage({
+  cloudinary,
+  params: async (req, file) => {
+    let folder = "social-app"; // default folder
+    if (file.mimetype.startsWith("image")) folder = "social-app/images";
+    else if (file.mimetype.startsWith("video")) folder = "social-app/videos";
 
-    filename: function (req,file,cb){
-        const uniquename = Date.now() + "=" + path.extname(file.originalname);
-        cb(null, uniquename);
-    }
+    return {
+      folder,
+      allowed_formats: ["jpg", "jpeg", "png", "gif", "mp4", "mov", "webm"],
+    };
+  },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage });
 
 export default upload;
