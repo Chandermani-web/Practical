@@ -16,7 +16,7 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setformdata({ ...formdata, [name]: value });
-  };
+  }; 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
