@@ -1,11 +1,18 @@
-import { createContext, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
     const [user, setUser] = useState();
+    const [allUser, setAllUser] = useState([]);
     const [posts, setPosts] = useState([]);
-    const [auth, setAuth] = useState(false);
+    const [commentIdForFetching, setCommentIdForFetching] = useState(null);
+    const [comments, setComments] = useState([]);
+    
+
+    const [auth, setAuth] = useState(()=>{
+        return localStorage.getItem("auth") === "true" ? true : false;
+    });
 
     const fetchPosts = async () => {
         try {
@@ -39,16 +46,61 @@ export const AppProvider = ({ children }) => {
             console.log("Fetched user:", data);
             setUser(data.user);
             if(data.user.email) {
-              setAuth(true);
+              localStorage.setItem("auth", "true");
             } else {
-              setAuth(false);
+              localStorage.setItem("auth", "false");
             }
         } catch (err) {
             console.error("Error fetching user:", err.message);
         }
     };
 
-    const value = { user, setUser, posts, setPosts, fetchPosts, fetchUser , auth, setAuth };
+    const fetchComments = async () => {
+        try{
+            const res = await fetch(`http://localhost:5000/api/posts/${commentIdForFetching}/comment`, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                credentials: "include",
+            });
+            const data = await res.json();
+            console.log("Fetched comments:", data);
+            setComments(data);
+        }catch(err){
+            console.log(err);
+        }
+    }
+
+    const fetchAllUser = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/AllUser", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+      const data = await res.json();
+      console.log(data);
+      setAllUser(data.data); // assuming your API returns { data: [...] }
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+    useEffect(() => {
+        fetchUser();
+        fetchPosts();
+    },[]);
+
+  useEffect(() => {
+        if(commentIdForFetching){
+            fetchComments();
+        }
+    }, [commentIdForFetching]);
+
+    const value = { user, setUser, allUser, setAllUser , posts, setPosts, fetchPosts, fetchUser , fetchAllUser , fetchComments , auth, setAuth , comments, setComments , commentIdForFetching, setCommentIdForFetching };
 
     return (
         <AppContext.Provider value={value}>
