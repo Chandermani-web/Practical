@@ -4,7 +4,7 @@ import AppContext from "../Context/UseContext";
 import { useNavigate } from "react-router-dom";
 import LeftSideBar from "../Components/Home/LeftSideBar";
 import RightSideBar from "../Components/Home/RightSideBar";
-import ShowPost from "./ShowPost";
+import ShowPost from "../Components/Post/ShowPost";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -37,12 +37,13 @@ const Home = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Left Sidebar - User Info */}
-          <div className="lg:col-span-1 lg:block hidden">
-            <LeftSideBar />
+          <div className="lg:col-span-1 lg:block hidden space-y-6">
+              <LeftSideBar />
+              <RightSideBar />
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-3">
             {/* Welcome Message */}
             <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 mb-6">
               <h1 className="text-2xl font-bold mb-2">
@@ -62,7 +63,7 @@ const Home = () => {
                 <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
                   {user.profilePic ? (
                     <img
-                      src={`http://localhost:5000${user.profilePic}`}
+                      src={user.profilePic ? user.profilePic : "/defaultProfile.png"}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
@@ -96,7 +97,7 @@ const Home = () => {
                 </div>
 
                 {posts.length > 0 ? (
-                  posts.map((post) => <ShowPost key={post._id} post={post} />)
+                  <ShowPost />
                 ) : (
                   <div className="text-center py-8 text-gray-400">
                     <MessageSquare className="w-12 h-12 mx-auto mb-4 opacity-50" />
@@ -107,11 +108,6 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Right Sidebar - Additional Info */}
-          <div className="lg:col-span-1">
-            {/* Contact Information */}
-            <RightSideBar />
-          </div>
         </div>
       </div>
     </div>
