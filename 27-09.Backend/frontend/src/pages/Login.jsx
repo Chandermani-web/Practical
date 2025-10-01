@@ -35,6 +35,7 @@ const Login = () => {
       setUser(data.user); // Update user context
 
       if (response.ok) {
+        localStorage.setItem("auth","true")
         // Login success (200)
         toast.success(`Login successful! ${data.message}`, { autoClose: 2000 , onClose: () => { window.location.href = '/'; }});
       } else {
