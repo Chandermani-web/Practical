@@ -1,14 +1,16 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
-import { User, Mail, MapPin, Globe, Phone, Calendar, Camera, Edit3, Save, X } from 'lucide-react';
+import { User, Mail, MapPin, Globe, Phone, Calendar, Camera, Edit3, Save, X, Heart, Share2,MessageCircle } from 'lucide-react';
 import AppContext from '../../Context/UseContext.jsx';
+import Comment from '../Post/Service/Comment.jsx';
 
 const ProfileUpdate = () => {
   const { user, setUser } = useContext(AppContext);
+  const [openCommentBoxId, setOpenCommentBoxId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState({  
     fullname: '',
     bio: '',
     location: '',
@@ -150,7 +152,7 @@ const ProfileUpdate = () => {
         <div className="relative h-64 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg mb-6">
           {user.coverPic && (
             <img 
-              src={`http://localhost:5000${user.coverPic}`} 
+              src={user.coverPic} 
               alt="Cover" 
               className="w-full h-full object-cover rounded-lg"
             />
@@ -173,7 +175,7 @@ const ProfileUpdate = () => {
             <div className="w-32 h-32 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden">
               {user.profilePic ? (
                 <img 
-                  src={`http://localhost:5000${user.profilePic}`} 
+                  src={user.profilePic ? user.profilePic : "/defaultProfile.png"}
                   alt="Profile" 
                   className="w-full h-full object-cover"
                 />
@@ -462,6 +464,58 @@ const ProfileUpdate = () => {
             </div>
           </div>
         )}
+
+        <h3 className="text-2xl text-gray-200 font-semibold mb-4">Recent Posts</h3>
+
+          {
+          user.posts && user.posts.length > 0 && (
+            <div className="bg-gray-800 p-6 rounded-lg mt-6">
+              <div className="space-y-4 lg:max-w-4xl mx-auto grid sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
+                {
+                  user.posts.slice(0, 3).map(post => (
+                    <div key={post._id} className="bg-gray-700 p-4 rounded-lg relative border-2 border-gray-600 ">
+                      <p className="mb-2 p-3 rounded-2xl">{post.content}</p>
+                      {
+                        post.image && (
+                          <img src={post.image || "/defaultPostImage.png"} alt="" className="mb-2 rounded-lg max-h-96 object-contain w-full" />
+                        )
+                      }
+                      {
+                        post.video && (
+                          <video src={post.video || "/defaultPostVideo.mp4"} controls className="mb-2 rounded-lg max-h-96 w-full"></video>
+                        )
+                      }
+
+                      <div className="text-sm text-gray-400 text-right">
+                        Posted on: {new Date(post.createdAt).toLocaleString()}
+                      </div>
+
+                      <div className='flex gap-4'>
+                        <button className="text-gray-400 hover:text-red-500 flex space-x-1 items-center transition-colors text-lg">
+                          <Heart className="w-4 h-4 inline-block mr-1" />
+                          {post.likes?.length || 0}
+                        </button>
+                        <button className="text-gray-400 hover:text-blue-500 flex space-x-1 items-center transition-colors text-lg" onClick={() => setOpenCommentBoxId(openCommentBoxId === post._id ? null : post._id)}>
+                          <MessageCircle className="w-4 h-4 inline-block mr-1" />
+                          {post.comments?.length || 0}
+                        </button>
+                        <button className="text-gray-400 hover:text-green-500 flex space-x-1 items-center transition-colors text-lg">
+                          <Share2 className="w-4 h-4 inline-block mr-1" />
+                          {post.shares || 0}
+                        </button>
+                      </div>
+
+                      {
+                        openCommentBoxId === post._id && (
+                          <Comment postId={post._id} />
+                        )
+                      }
+                    </div>
+                  ))}
+              </div>
+            </div>
+            )
+          }
 
         <ToastContainer />
       </div>
