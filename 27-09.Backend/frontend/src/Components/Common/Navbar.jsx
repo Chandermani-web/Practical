@@ -14,7 +14,7 @@ import AppContext from "../../Context/UseContext";
 
 const Navbar = () => {
     const { auth, setUser } = useContext(AppContext);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
     try {
@@ -22,6 +22,7 @@ const Navbar = () => {
         method: "POST",
         credentials: "include",
       });
+      localStorage.setItem("auth","false");
       setUser(null);
       window.location.href = "/login";
     } catch (error) {
@@ -49,10 +50,10 @@ const Navbar = () => {
                     <HomeIcon className="w-5 h-5" />
                     <span>Home</span>
                   </a>
-                  <button className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors duration-200">
+                  <a className="flex items-center space-x-2 text-purple-400 hover:text-purple-300 transition-colors duration-200" href="/connections">
                     <Network className="w-5 h-5" />
                     <span>Connection</span>
-                  </button>
+                  </a>
                   <button className="flex items-center space-x-2 text-green-400 hover:text-green-300 transition-colors duration-200">
                     <MessageSquareMore className="w-5 h-5" />
                     <span>Messages</span>
@@ -116,13 +117,14 @@ const Navbar = () => {
                     <HomeIcon className="w-5 h-5" />
                     <span>Home</span>
                   </a>
-                  <button 
+                  <a
+                  href="/connections" 
                     className="flex items-center space-x-3 p-3 text-purple-400 hover:text-purple-300 hover:bg-gray-600 rounded-lg transition-all duration-200 text-left"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <Network className="w-5 h-5" />
                     <span>Connection</span>
-                  </button>
+                  </a>
                   <button 
                     className="flex items-center space-x-3 p-3 text-green-400 hover:text-green-300 hover:bg-gray-600 rounded-lg transition-all duration-200 text-left"
                     onClick={() => setIsMobileMenuOpen(false)}
