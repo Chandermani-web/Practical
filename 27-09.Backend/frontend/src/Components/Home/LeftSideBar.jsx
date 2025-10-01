@@ -11,7 +11,7 @@ const LeftSideBar = () => {
                 <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center overflow-hidden mx-auto mb-4">
                   {user.profilePic ? (
                     <img
-                      src={`http://localhost:5000${user.profilePic}`}
+                      src={user.profilePic ? user.profilePic : "/defaultProfile.png"}
                       alt="Profile"
                       className="w-full h-full object-cover"
                     />
