@@ -8,7 +8,7 @@ export const createPost = asyncHandler(async (req, res) => {
     const content = req.body.content;
     const user = req.user._id; // From isLoggedIn middleware
 
-    if (!content) {
+    if (!content && !req.file) {
         return res.status(400).json({ message: 'Content is required' });
     }
 
@@ -112,7 +112,7 @@ export const deletePost = asyncHandler(async (req, res) => {
 
 export const likeAndUnlikePost = asyncHandler(async (req, res) => {
     const postId = req.params.id;
-    const userId = req.user - _id || req.user; // Assuming user ID is available in req.user
+    const userId = req.user._id || req.user; // Assuming user ID is available in req.user
     if (!mongoose.Types.ObjectId.isValid(postId)) {
         return res.status(400).json({ message: 'Invalid post ID' });
     }
@@ -124,12 +124,12 @@ export const likeAndUnlikePost = asyncHandler(async (req, res) => {
     if(post.likes.includes(userId)){
         post.likes.pull(userId);
         await post.save();
-        return res.status(200).json({ message: 'Post unliked successfully' });
+        return res.status(200).json({ message: 'Post unliked successfully', success: true, updatedLikes: post.likes, post });
     }
     else{
         post.likes.push(userId);
         await post.save();
-        return res.status(200).json({ message: 'Post liked successfully' });
+        return res.status(200).json({ message: 'Post liked successfully', success: true, updatedLikes: post.likes, post });
     }
 });
 
@@ -156,7 +156,7 @@ export const getPostById = asyncHandler(async (req, res) => {
 // Add a comment to a post
 export const addComment = asyncHandler(async (req, res) => {
     const postId = req.params.id;
-    const userId = req.user - _id || req.user;
+    const userId = req.user._id || req.user;
     const { text } = req.body;
 
     if (!text) {
@@ -170,7 +170,16 @@ export const addComment = asyncHandler(async (req, res) => {
 
     post.comments.push({ user: userId, text });
     await post.save();
-    res.status(201).json({ message: 'Comment added successfully', post });
+    res.status(201).json({ message: 'Comment added successfully', updatedComment: post.comments, post });
+});
+
+export const getComments = asyncHandler(async (req, res) => {
+    const postId = req.params.id;
+    const post = await Post.findById(postId).populate('comments.user', 'username avatar');
+    if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+    }
+    res.status(200).json(post.comments);
 });
 
 export const deleteComment = asyncHandler(async (req, res) => {
