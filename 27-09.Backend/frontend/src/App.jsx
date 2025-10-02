@@ -1,4 +1,4 @@
-import { useContext, useEffect } from "react";
+import { useContext } from "react";
 import AppContext from "./Context/UseContext";
 import { Route, Routes } from 'react-router-dom';
 import Home from "./pages/Home";
@@ -11,10 +11,6 @@ import Connection from "./pages/Connection";
 
 const App = () => {
   const { auth } = useContext(AppContext);
-
-  useEffect(()=>{
-    console.log("Auth state changed:", auth);
-  })
 
   return (
     <div className="bg-gray-900 min-h-screen text-gray-50">
