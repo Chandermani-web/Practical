@@ -2,12 +2,10 @@ import User from '../models/auth.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
 // 🔹 Generate JWT Token
 const generateToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 };
-
 // 🔹 Signup
 export const signup = asyncHandler(async (req, res) => {
     const { username, email, password } = req.body;
