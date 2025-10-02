@@ -1,5 +1,5 @@
 import express from 'express';
-import { createPost, deletePost, getAllPosts, getPostById, likeAndUnlikePost, updatePost, addComment, deleteComment } from '../controllers/post.controller.js';
+import { createPost, deletePost, getAllPosts, getPostById, likeAndUnlikePost, updatePost, addComment, getComments, deleteComment } from '../controllers/post.controller.js';
 import upload from '../middlewares/upload.js';
 import { isLoggedIn } from '../middlewares/isLoggedIn.js';
 
@@ -13,5 +13,6 @@ router.delete('/:id', isLoggedIn, deletePost);
 router.post('/:id/likeandunlike', isLoggedIn, likeAndUnlikePost);
 
 router.post("/:id/comment", isLoggedIn, addComment);
+router.get("/:id/comment", isLoggedIn, getComments);
 router.delete("/:id/comment/:commentId", isLoggedIn, deleteComment);
 export default router;
