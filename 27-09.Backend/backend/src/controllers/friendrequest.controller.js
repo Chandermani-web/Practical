@@ -128,8 +128,6 @@ export const removeFriend = asyncHandler(async (req, res) => {
     res.status(200).json({ message: 'Friend removed.' });
 });
 
-
-
 // Get all the friends of the logged-in user
 export const listFriends = asyncHandler(async (req, res) => {
     const userId = req.user._id;
@@ -144,4 +142,23 @@ export const listFriendRequests = asyncHandler(async (req, res) => {
         .populate('sender', 'username email profilePic phone dateOfBirth friends savedPosts interests socialLinks location website bio fullname coverPic')
         .exec();
     res.status(200).json({ message: "Friend Request Get Successfully", requests });
+});
+
+
+export const getFriendById = asyncHandler(async (req, res) => {
+  const friendId = req.params.id || req.body; // MUST use params
+
+  if (!friendId) {
+    return res.status(400).json({ message: 'Friend ID is required.' });
+  }
+
+  const friend = await User.findById(friendId)
+    .select('username email profilePic phone dateOfBirth friends savedPosts interests socialLinks location website bio fullname coverPic')
+    .exec();
+
+  if (!friend) {
+    return res.status(404).json({ message: 'Friend not found.' });
+  }
+
+  res.status(200).json({ message: 'Friend retrieved successfully.', friend });
 });
