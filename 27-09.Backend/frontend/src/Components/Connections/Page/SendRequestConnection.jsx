@@ -1,13 +1,16 @@
 import { useContext } from "react"
 import AppContext from "../../../Context/UseContext"
+import { useNavigate } from "react-router-dom"
 
 const SendRequestConnection = () => {
   const { user } = useContext(AppContext);
+  const navigate = useNavigate();
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
       {
         user.following.map((u) => (
-          <div key={u._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          <div key={u._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg" onClick={() => navigate(`/profile/${u.username}`)}>
             <div className="h-24 w-full overflow-hidden">
               <img
                 src={u.coverPic || "/default-cover.jpg"}
