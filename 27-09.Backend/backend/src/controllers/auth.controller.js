@@ -83,3 +83,11 @@ export const logout = asyncHandler(async (req, res) => {
     res.clearCookie('token');
     return res.status(200).json({ message: 'User logged out successfully' });
 });
+
+
+// AllUser
+
+export const AllUser = asyncHandler(async (req,res)=>{
+    const alluser = await User.find({ _id: { $ne: req.user._id } }).select("-password");
+    return res.status(200).json({ success: true, data: alluser });
+})
