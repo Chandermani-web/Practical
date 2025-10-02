@@ -1,8 +1,10 @@
 import { useContext, useEffect } from "react"
 import AppContext from "../../../Context/UseContext"
+import { useNavigate } from "react-router-dom"
 
 const YourTotalConnection = () => {
   const { friendList, fetchFriendlist } = useContext(AppContext)
+  const navigate = useNavigate();
   console.log("Friend List in YourTotalConnection:", friendList);
 
   useEffect(()=>{
@@ -17,7 +19,7 @@ const YourTotalConnection = () => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
       {friendList.length > 0 ? (
         friendList.map((friend) => (
-          <div key={friend._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          <div key={friend._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg" onClick={() => navigate(`/profile/${friend._id}`)} style={{ cursor: 'pointer' }}>
             <div className="h-24 w-full overflow-hidden">
               <img
                 src={friend.coverPic || "/default-cover.jpg"}
@@ -47,8 +49,9 @@ const YourTotalConnection = () => {
 
               {friend.location && <p className="text-xs text-gray-400">📍 {friend.location}</p>}
 
-              
-              
+              <button className="mt-4 bg-blue-500 text-white py-2 px-4 rounded w-full">
+                Message
+              </button>
             </div>
           </div>
         ))
