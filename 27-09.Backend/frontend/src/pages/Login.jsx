@@ -37,14 +37,14 @@ const Login = () => {
       if (response.ok) {
         localStorage.setItem("auth","true")
         // Login success (200)
-        toast.success(`Login successful! ${data.message}`, { autoClose: 2000 , onClose: () => { window.location.href = '/'; }});
+        toast.success(`Login successful! ${data.message}`, { autoClose: 1000 , onClose: () => { window.location.href = '/'; }});
       } else {
         // Login failed (400, 401, etc.)
-        toast.error(`Login failed! ${data.message}`, { autoClose: 2000 });
+        toast.error(`Login failed! ${data.message}`, { autoClose: 1000 });
       }
     } catch (error) {
       console.error(error);
-      toast.error(`Login failed! ${error.message}`, { autoClose: 2000 });
+      toast.error(`Login failed! ${error.message}`, { autoClose: 1000 });
     } finally {
       setLoading(false);
     }
