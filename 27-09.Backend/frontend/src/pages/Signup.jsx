@@ -37,18 +37,18 @@ const Signup = () => {
       if (response.ok) {
         // Signup success (201)
         toast.success(`Signup successful! ${data.message}`, {
-          autoClose: 2000,
+          autoClose: 1000,
           onClose: () => {
             window.location.href = "/";
           },
         });
       } else {
         // Signup failed (400, 401, etc.)
-        toast.error(`Signup failed! ${data.message}`, { autoClose: 2000 });
+        toast.error(`Signup failed! ${data.message}`, { autoClose: 1000 });
       }
     } catch (error) {
       console.error(error);
-      toast.error(`Signup failed! ${error.message}`, { autoClose: 2000 });
+      toast.error(`Signup failed! ${error.message}`, { autoClose: 1000 });
     } finally {
       setLoading(false);
     }
