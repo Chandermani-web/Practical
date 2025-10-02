@@ -1,6 +1,7 @@
 import User from "../models/auth.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import upload from "../middlewares/upload.js";
+import cloudinary from "../utils/cloudinary.js";
 
 // 🔹 Update profile
 export const UpdateProfile = asyncHandler(async (req, res) => {
@@ -42,18 +43,19 @@ export const UpdateProfile = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔹 Upload profile picture
 export const UploadProfilePic = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
-  }
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
   const existingUser = await User.findById(req.user);
-  if (!existingUser) {
-    return res.status(404).json({ message: "User not found" });
-  }
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
 
-  existingUser.profilePic = `/uploads/images/${req.file.filename}`;
+  // Upload to Cloudinary
+  const result = await cloudinary.uploader.upload(req.file.path, {
+    folder: "users/profilePics",
+    transformation: [{ width: 500, height: 500, crop: "fill" }],
+  });
+
+  existingUser.profilePic = result.secure_url;
   await existingUser.save();
 
   return res.status(200).json({ 
@@ -64,16 +66,18 @@ export const UploadProfilePic = asyncHandler(async (req, res) => {
 
 // 🔹 Upload cover picture
 export const UploadCoverPic = asyncHandler(async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: "No file uploaded" });
-  }
+  if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 
   const existingUser = await User.findById(req.user);
-  if (!existingUser) {
-    return res.status(404).json({ message: "User not found" });
-  }
+  if (!existingUser) return res.status(404).json({ message: "User not found" });
 
-  existingUser.coverPic = `/uploads/images/${req.file.filename}`;
+  // Upload to Cloudinary
+  const result = await cloudinary.uploader.upload(req.file.path, {
+    folder: "users/coverPics",
+    transformation: [{ width: 1200, height: 400, crop: "fill" }],
+  });
+
+  existingUser.coverPic = result.secure_url;
   await existingUser.save();
 
   return res.status(200).json({ 
@@ -82,16 +86,15 @@ export const UploadCoverPic = asyncHandler(async (req, res) => {
   });
 });
 
-// 🔹 Get profile
 export const GetProfile = async (req, res) => {
+  console.log("👉 GetProfile req.user:", req.user);
   try {
-    console.log("👉 req.user:", req.user);
-
     const existingUser = await User.findById(req.user)
       .select("-password")
       .populate("posts")
       .populate("followers")
-      .populate("following");
+      .populate("following")
+      .populate("friends"); // populate selected fields
 
     if (!existingUser) {
       return res.status(404).json({ message: "User not found" });
@@ -99,10 +102,7 @@ export const GetProfile = async (req, res) => {
 
     return res.status(200).json({ user: existingUser });
   } catch (err) {
-    console.error("👉 GetProfile error:", err);   // full error in backend logs
-    return res.status(500).json({ 
-      message: "Server error", 
-      error: err.message  // send error details to frontend
-    });
+    console.error("GetProfile error:", err);
+    return res.status(500).json({ message: "Server error", error: err.message });
   }
 };
