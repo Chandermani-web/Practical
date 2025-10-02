@@ -2,10 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import "remixicon/fonts/remixicon.css";
 import AppContext from "../../../Context/UseContext";
 import ReceiveRequestConnection from "./ReceiveRequestConnection";
+import { useNavigate } from "react-router-dom";
 
 const ShowAllUser = () => {
   const { user, allUser, fetchAllUser, requests } = useContext(AppContext);
-  const [displayUsers, setDisplayUsers] = useState([]);
+  const [displayUsers, setDisplayUsers] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllUser();
@@ -69,6 +71,7 @@ const ShowAllUser = () => {
             <div
               key={u._id}
               className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg"
+              onClick={() => navigate(`/profile/${u._id}`)}
             >
               <div className="h-24 w-full overflow-hidden">
                 <img
