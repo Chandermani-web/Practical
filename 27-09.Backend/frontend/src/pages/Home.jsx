@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { User, MessageSquare, Plus, Camera } from "lucide-react";
+import { User, MessageSquare, Plus, Camera, Loader } from "lucide-react";
 import AppContext from "../Context/UseContext";
 import { useNavigate } from "react-router-dom";
 import LeftSideBar from "../Components/Home/LeftSideBar";
@@ -9,9 +9,9 @@ import ShowPost from "../Components/Post/ShowPost";
 const Home = () => {
   const navigate = useNavigate();
 
-  const { user, posts } = useContext(AppContext);
+  const { user, posts, auth} = useContext(AppContext);
 
-  if (!user) {
+  if (!auth) {
     return (
       <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
         <div className="text-center">
@@ -28,6 +28,14 @@ const Home = () => {
         </div>
       </div>
     );
+  }
+
+  if(!user){
+    return <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+      <div className="text-center">
+        <Loader className="w-12 h-12 text-gray-500 animate-spin mx-auto mb-4" />
+      </div>
+    </div>;
   }
 
   return (
