@@ -1,9 +1,11 @@
 import 'remixicon/fonts/remixicon.css';
 import { useContext, useEffect } from "react";
 import AppContext from '../../../Context/UseContext';
+import { useNavigate } from 'react-router-dom';
 
 const ReceiveRequestConnection = () => {
   const { requests, setRequests, fetchFriendRequests } = useContext(AppContext);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchFriendRequests();
@@ -50,7 +52,7 @@ const ReceiveRequestConnection = () => {
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4">
       {requests.length > 0 ? (
         requests.map((req) => (
-          <div key={req._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg">
+          <div key={req._id} className="bg-gray-800 rounded-2xl overflow-hidden shadow-lg" onClick={() => navigate(`/profile/${req.sender.username}`)}>
             <div className="h-24 w-full overflow-hidden">
               <img
                 src={req.sender.coverPic || "/default-cover.jpg"}
