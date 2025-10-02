@@ -73,7 +73,7 @@ export const updatePost = asyncHandler(async (req, res) => {
 // Delete a post
 export const deletePost = asyncHandler(async (req, res) => {
     const postId = req.params.id;
-    const userId = req.user - _id || req.user; // Assuming user ID is available in req.user
+    const userId = req.user._id || req.user; // Assuming user ID is available in req.user
 
     if (!mongoose.Types.ObjectId.isValid(postId)) {
         return res.status(400).json({ message: 'Invalid post ID' });
@@ -185,7 +185,7 @@ export const getComments = asyncHandler(async (req, res) => {
 export const deleteComment = asyncHandler(async (req, res) => {
     const postId = req.params.id;
     const commentId = req.params.commentId;
-    const userId = req.user - _id || req.user;
+    const userId = req.user._id || req.user;
     const post = await Post.findById(postId);
     if (!post) {
         return res.status(404).json({ message: 'Post not found' });
