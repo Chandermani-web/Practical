@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isPrivate: { type: Boolean, default: false },
     posts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     followers: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
     savedPosts: [{ type: mongoose.Schema.Types.ObjectId, ref: "Post" }],
