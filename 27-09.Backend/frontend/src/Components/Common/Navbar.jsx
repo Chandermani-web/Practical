@@ -2,7 +2,6 @@ import {
   LogOut,
   Home as HomeIcon,
   User as UserIcon,
-  // Search,
   Bell,
   MessageSquareMore,
   Network,
@@ -37,12 +36,12 @@ const Navbar = () => {
     <nav className="flex items-center justify-between p-4 bg-gray-800">
         <div className="w-full">
           <div className="flex justify-between items-center h-16">
-            <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-amber-500">LingOLive</h1>
+            <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-amber-500">LingOLive</h1>
             
             {/* Desktop Navigation */}
             <div className="hidden md:block">
               {auth ? (
-                <div className="flex space-x-6">
+                <div className="flex space-x-6 text-sm font-medium">
                   <a
                     href="/"
                     className="flex items-center space-x-2 text-blue-400 hover:text-blue-300 transition-colors duration-200"
