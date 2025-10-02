@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import AuthRouter from './routes/auth.route.js';
 import PostRouter from './routes/post.route.js';
+import FriendRouter from './routes/friend.route.js'
 
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -29,6 +30,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 app.use("/api/auth", AuthRouter);
 app.use("/api/posts", PostRouter);
+app.use("/api/friends", FriendRouter);
 
 app.get('/', (req, res) => {
     res.send("API is working");
