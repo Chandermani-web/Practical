@@ -9,6 +9,8 @@ import CreatePost from "./Components/Post/CreatePost";
 import Navbar from "./Components/Common/Navbar";
 import Connection from "./pages/Connection";
 import User_Profile from "./Components/Connections/Page/User_Profile";
+import Notification from "./pages/Notification";
+import ShowPost from "./Components/Post/ShowPost";
 
 const App = () => {
   const { auth } = useContext(AppContext);
@@ -23,8 +25,10 @@ const App = () => {
         <Route path="/signup" element={auth ? <Home /> : <Signup />} />
         <Route path="/login" element={auth ? <Home /> : <Login />} />
         <Route path="/create-post" element={auth ? <CreatePost /> : <Login />} />
+        <Route path="/posts" element={auth ? <ShowPost /> : <Login />} />
         <Route path="/connections" element={auth ? <Connection /> : <Login />} />
         <Route path="/profile/:id" element={auth ? <User_Profile /> : <Login />} />
+        <Route path="/notifications" element={auth ? <Notification /> : <Login />} />
       </Routes>
     </div>
   );
