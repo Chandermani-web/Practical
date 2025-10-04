@@ -7,12 +7,13 @@ import {
   Network,
   Menu,
   X,
+  Eye
 } from "lucide-react";
 import { useContext, useState } from "react";
 import AppContext from "../../Context/UseContext";
 
 const Navbar = () => {
-    const { auth, setUser } = useContext(AppContext);
+    const { auth, setUser, notifications } = useContext(AppContext);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const handleLogout = async () => {
@@ -57,10 +58,26 @@ const Navbar = () => {
                     <MessageSquareMore className="w-5 h-5" />
                     <span>Messages</span>
                   </button>
-                  <button className="flex items-center space-x-2 text-yellow-400 hover:text-yellow-300 transition-colors duration-200">
-                    <Bell className="w-5 h-5" />
+                  <a href="/posts"
+                  className="flex items-center space-x-2 text-red-400 hover:text-red-300 transition-colors duration-200"
+                  >
+                    <Eye className="w-5 h-5" />
+                    <span>Posts</span>
+                  </a>
+                  <a
+                  href="/notifications"
+                  className="flex items-center space-x-2 text-yellow-400 hover:text-yellow-300 transition-colors duration-200"
+                  >
+                    <div className="relative">
+                      <Bell className="w-5 h-5" />
+                      {notifications.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-green-500 text-white font-bold rounded-full px-1 text-xs">
+                          {notifications.length}
+                        </span>
+                      )}
+                    </div>
                     <span>Notifications</span>
-                  </button>
+                  </a>
                   <a
                     href="/profile"
                     className="flex items-center space-x-2 text-pink-400 hover:text-pink-300 transition-colors duration-200"
@@ -131,13 +148,20 @@ const Navbar = () => {
                     <MessageSquareMore className="w-5 h-5" />
                     <span>Messages</span>
                   </button>
-                  <button 
+                  <a href="/notifications"
                     className="flex items-center space-x-3 p-3 text-yellow-400 hover:text-yellow-300 hover:bg-gray-600 rounded-lg transition-all duration-200 text-left"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    <Bell className="w-5 h-5" />
-                    <span>Notifications</span>
-                  </button>
+                    <div>
+                      <Bell className="w-5 h-5" />
+                      {notifications.length > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold rounded-full px-1 animate-pulse">
+                          {notifications.length}
+                        </span>
+                      )}
+                    </div>
+                    <span>Notifications</span>                    
+                  </a>
                   <a
                     href="/profile"
                     className="flex items-center space-x-3 p-3 text-pink-400 hover:text-pink-300 hover:bg-gray-600 rounded-lg transition-all duration-200"
