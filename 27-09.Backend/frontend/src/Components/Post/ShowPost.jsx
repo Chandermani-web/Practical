@@ -1,14 +1,15 @@
 import { useContext, useEffect, useState } from "react";
 import AppContext from "../../Context/UseContext";
-import { Heart, MessageCircle } from "lucide-react";
+import { Heart, MessageCircle, ThumbsUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import Comment from "./Service/Comment";
 
 const ShowPost = () => {
   const [openCommentBoxId, setOpenCommentBoxId] = useState(null); // store postId instead of boolean
+  const [expandedPostId, setExpandedPostId] = useState(null);
   const {
     posts,
-    user,
+    // user,
     setPosts,
     fetchPosts,
     fetchComments,
@@ -46,12 +47,12 @@ const ShowPost = () => {
       console.error("Error liking post:", err);
     }
   };
-
+  
   useEffect(() => {
-    fetchPosts();
     if (openCommentBoxId) {
       fetchComments();
     }
+    fetchPosts();
   }, [openCommentBoxId]);
 
   if (!posts) {
@@ -63,13 +64,13 @@ const ShowPost = () => {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 text-white">
+    <div className="max-w-5xl mx-auto p-6 text-white">
       {posts?.length > 0 ? (
         <div className="space-y-6">
           {posts.map((post) => (
             <div
               key={post._id}
-              className="bg-gray-800 rounded-2xl shadow-lg p-4 space-y-3"
+              className="bg-gray-800 rounded-2xl shadow-lg p-3 space-y-3"
             >
               {/* User Info */}
               <div className="flex items-center space-x-3">
@@ -92,7 +93,8 @@ const ShowPost = () => {
               </div>
 
               {/* Post Content */}
-              <p className="text-gray-200">{post.content}</p>
+              <p className={`text-gray-200 ${ expandedPostId === post._id ? "" : "line-clamp-3" }`} > {post.content}</p>
+              <button className="text-blue-400 hover:underline" onClick={() => setExpandedPostId( expandedPostId === post._id ? null : post._id ) } > {expandedPostId === post._id ? "See Less" : "See More"} </button>
 
               {/* Image */}
               {post.image && (
@@ -116,14 +118,10 @@ const ShowPost = () => {
               <div className="flex space-x-6 text-gray-400 mt-2">
                 {/* Like Button */}
                 <button
-                  className="flex items-center space-x-1 hover:text-red-400 transition-colors"
+                  className="flex items-center space-x-1 hover:text-blue-400 transition-colors"
                   onClick={() => handleLike(post._id)}
                 >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      post.likes?.includes(user._id) ? "text-red-500" : ""
-                    }`}
-                  />
+                  <ThumbsUp className="w-5 h-5" />
                   <span>{post.likes?.length || 0}</span>
                 </button>
 
