@@ -2,10 +2,8 @@ import { useContext, useState, useEffect } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import {
   User,
-  Mail,
   MapPin,
   Globe,
-  Phone,
   Calendar,
   Camera,
   Edit3,
@@ -13,7 +11,8 @@ import {
   X,
   Heart,
   MessageCircle,
-  Loader
+  Loader,
+  ThumbsUp,
 } from "lucide-react";
 import AppContext from "../../Context/UseContext.jsx";
 import { Link } from "react-router-dom";
@@ -27,8 +26,10 @@ const ProfileUpdate = () => {
     setPosts,
     fetchUser,
     fetchComments,
+    fetchPosts,
     setCommentIdForFetching,
   } = useContext(AppContext);
+
   const [openCommentBoxId, setOpenCommentBoxId] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -48,6 +49,15 @@ const ProfileUpdate = () => {
       linkedin: "",
       github: "",
     },
+  });
+
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [editOn, setEditOn] = useState(false);
+  const [editPostId, setEditPostId] = useState(null);
+  const [editdata, seteditdata] = useState({
+    content: "",
+    video: "",
+    image: "",
   });
 
   useEffect(() => {
@@ -72,6 +82,97 @@ const ProfileUpdate = () => {
       });
     }
   }, [user]);
+
+  const handleEdit = (id, currentContent, currentImage, currentVideo) => {
+    setOpenMenuId(null);
+    setEditOn(true);
+    setEditPostId(id);
+    seteditdata({
+      content: currentContent || "",
+      image: currentImage || "",
+      video: currentVideo || "",
+    });
+  };
+
+  // Handle new image selection
+  const handleEditImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        seteditdata((prev) => ({ ...prev, image: reader.result, video: "" }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Handle new video selection
+  const handleEditVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        seteditdata((prev) => ({ ...prev, video: reader.result, image: "" }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Save edited post
+  const handleSaveEdit = async () => {
+    if (!editPostId) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${editPostId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(editdata),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Post updated successfully");
+        const updatedPosts = posts.map((p) =>
+          p._id === editPostId ? { ...p, ...data.post } : p
+        );
+        setPosts(updatedPosts);
+        setEditOn(false);
+        setEditPostId(null);
+        fetchPosts();
+      } else {
+        toast.error(data.message || "Failed to update post");
+      }
+    } catch (err) {
+      toast.error("Error updating post: " + err.message);
+    }
+  };
+
+  // Delete post
+  const handleDelete = async (id) => {
+    try {
+      const res = await fetch(`http://localhost:5000/api/posts/${id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success("Post deleted successfully");
+        setPosts(posts.filter((p) => p._id !== id));
+      } else {
+        toast.error(data.message || "Failed to delete post");
+      }
+    } catch (err) {
+      toast.error("Error deleting post: " + err.message);
+    }
+  };
+
+  const handleShare = (id) => {
+    console.log("Share post:", id);
+  };
+
+  const handleSave = (id) => {
+    console.log("Save post:", id);
+  };
 
   const handleLike = async (postId) => {
     try {
@@ -325,22 +426,28 @@ const ProfileUpdate = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+        <div className="grid grid-cols-4 gap-2 mb-8">
+          <div className="bg-gray-600 p-4 rounded-lg text-center text-white">
             <div className="text-2xl font-bold">{user.posts?.length || 0}</div>
-            <div className="text-gray-400">Posts</div>
+            <div className="text-blue-200">Posts</div>
           </div>
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+          <div className="bg-green-600 p-4 rounded-lg text-center text-white">
+            <div className="text-2xl font-bold">
+              {user.friends?.length || 0}
+            </div>
+            <div className="text-green-200">Friends</div>
+          </div>
+          <div className="bg-blue-600 p-3 rounded-lg text-center text-white">
             <div className="text-2xl font-bold">
               {user.followers?.length || 0}
             </div>
-            <div className="text-gray-400">Followers</div>
+            <div className="text-purple-200">Followers</div>
           </div>
-          <div className="bg-gray-800 p-4 rounded-lg text-center">
+          <div className="bg-violet-600 p-3 rounded-lg text-center text-white">
             <div className="text-2xl font-bold">
               {user.following?.length || 0}
             </div>
-            <div className="text-gray-400">Following</div>
+            <div className="text-red-200">Following</div>
           </div>
         </div>
 
@@ -590,92 +697,243 @@ const ProfileUpdate = () => {
         )}
 
         <div className="flex items-center justify-between mt-12 mb-6">
-          <h3 className="text-2xl text-gray-200 font-semibold">
-            Recent Posts
-          </h3>
-          <a href="/create-post" className="bg-blue-600 p-3 rounded-2xl hover:bg-blue-800 flex items-center gap-2">
+          <h3 className="text-2xl text-gray-200 font-semibold">Recent Posts</h3>
+          <a
+            href="/create-post"
+            className="bg-blue-600 p-3 rounded-2xl hover:bg-blue-800 flex items-center gap-2"
+          >
             <i className="ri-add-line"></i>
-             Create Post
+            Create Post
           </a>
         </div>
 
-        {posts
-          ?.filter((post) => post.user._id === user._id) // only user’s posts
-          .map((post) => (
-            <div
-              key={post._id}
-              className="bg-gray-800 rounded-2xl shadow-lg p-4 space-y-3 max-w-4xl mb-6 mx-auto"
-            >
-              {/* User Info */}
-              <div className="flex items-center space-x-3">
-                <img
-                  src={post.profilePic || "/avatar.svg"}
-                  alt="Profile"
-                  className="w-10 h-10 rounded-full object-cover"
-                />
+        <div>
+          {posts
+            ?.filter((post) => post.user._id === user._id)
+            .map((post) => (
+              <div
+                key={post._id}
+                className="bg-gray-800 rounded-2xl shadow-lg p-4 space-y-3 max-w-4xl mb-6 mx-auto relative"
+              >
+                {/* User Info */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={post.profilePic || "/avatar.svg"}
+                      alt="Profile"
+                      className="w-10 h-10 rounded-full object-cover"
+                    />
+                    <div>
+                      <Link
+                        to={`/profile/${post.user.username}`}
+                        className="font-semibold hover:underline"
+                      >
+                        @{post.user.username}
+                      </Link>
+                      <p className="text-xs text-gray-400">
+                        {new Date(post.createdAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Menu Button */}
+                  <div className="relative">
+                    <button
+                      className="text-gray-400 hover:text-white transition-colors"
+                      onClick={() =>
+                        setOpenMenuId(openMenuId === post._id ? null : post._id)
+                      }
+                    >
+                      <i className="ri-more-2-fill text-xl"></i>{" "}
+                      {/* Remix Icon */}
+                    </button>
+
+                    {openMenuId === post._id && (
+                      <div className="absolute right-0 mt-2 w-36 bg-gray-700 rounded-xl shadow-lg overflow-hidden z-10">
+                        <button
+                          onClick={() =>
+                            handleEdit(
+                              post._id,
+                              post.content,
+                              post.image,
+                              post.video
+                            )
+                          }
+                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-600 text-gray-200"
+                        >
+                          {editOn ? "✏️ Edit Off" : "✏️ Edit"}
+                        </button>
+                        <button
+                          onClick={() => handleDelete(post._id)}
+                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-600 text-red-400"
+                        >
+                          🗑️ Delete
+                        </button>
+                        <button
+                          onClick={() => handleShare(post._id)}
+                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-600 text-gray-200"
+                        >
+                          🔗 Share
+                        </button>
+                        <button
+                          onClick={() => handleSave(post._id)}
+                          className="block w-full text-left px-4 py-2 text-sm hover:bg-gray-600 text-gray-200"
+                        >
+                          💾 Save
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Editing the post */}
                 <div>
-                  <Link
-                    to={`/profile/${post.user.username}`}
-                    className="font-semibold hover:underline"
-                  >
-                    @{post.user.username}
-                  </Link>
-                  <p className="text-xs text-gray-400">
-                    {new Date(post.createdAt).toLocaleString()}
-                  </p>
+                  {editOn && editPostId === post._id ? (
+                    <div className="bg-gray-900 p-4 rounded-xl space-y-3">
+                      <textarea
+                        className="w-full p-3 bg-gray-700 border border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        value={editdata.content}
+                        onChange={(e) =>
+                          seteditdata({ ...editdata, content: e.target.value })
+                        }
+                        rows={6}
+                      />
+
+                      {/* Show existing or newly selected image/video */}
+                      {editdata.image && (
+                        <div className="relative">
+                          <img
+                            src={editdata.image}
+                            alt="Preview"
+                            className="w-full max-h-96 object-contain rounded-lg mt-2"
+                          />
+                          <button
+                            onClick={() =>
+                              seteditdata({ ...editdata, image: "" })
+                            }
+                            className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2"
+                          >
+                            <i className="ri-close-line"></i>
+                          </button>
+                        </div>
+                      )}
+
+                      {editdata.video && (
+                        <div className="relative">
+                          <video
+                            src={editdata.video}
+                            controls
+                            className="w-full max-h-96 rounded-lg mt-2"
+                          />
+                          <button
+                            onClick={() =>
+                              seteditdata({ ...editdata, video: "" })
+                            }
+                            className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-2"
+                          >
+                            <i className="ri-close-line"></i>
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Upload buttons */}
+                      <div className="flex items-center gap-4">
+                        <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg">
+                          <i className="ri-image-add-line text-xl text-blue-400"></i>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleEditImageChange}
+                            className="hidden"
+                          />
+                        </label>
+
+                        <label className="cursor-pointer bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg">
+                          <i className="ri-video-add-line text-xl text-pink-400"></i>
+                          <input
+                            type="file"
+                            accept="video/*"
+                            onChange={handleEditVideoChange}
+                            className="hidden"
+                          />
+                        </label>
+                      </div>
+
+                      {/* Buttons */}
+                      <div className="flex gap-4 mt-3">
+                        <button
+                          onClick={handleSaveEdit}
+                          className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-white"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditOn(false);
+                            setEditPostId(null);
+                            seteditdata({ content: "", image: "", video: "" });
+                          }}
+                          className="bg-gray-600 hover:bg-gray-700 px-4 py-2 rounded-lg text-white"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col  justify-center items-center">
+                      <p className="text-gray-200">{post.content}</p>
+                      {post.image && (
+                        <img
+                          src={post.image}
+                          alt=""
+                          className="w-1/2 h-1/2 object-contain rounded-lg mt-2"
+                        />
+                      )}
+                      {post.video && (
+                        <video
+                          src={post.video}
+                          controls
+                          className="w-1/2 h-1/2 rounded-lg mt-2"
+                        />
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div>
+                  <div className="flex space-x-6 text-gray-400 mt-2">
+                    <button
+                      className="flex items-center space-x-1 hover:text-red-400 transition-colors"
+                      onClick={() => handleLike(post._id)}
+                    >
+                      <ThumbsUp
+                        className={`w-5 h-5 ${
+                          post.likes?.includes(user._id) ? "text-blue-500" : ""
+                        }`}
+                      />
+                      <span>{post.likes?.length || 0}</span>
+                    </button>
+
+                    <button
+                      className="flex items-center space-x-1 hover:text-blue-400 transition-colors"
+                      onClick={() => {
+                        setOpenCommentBoxId(
+                          openCommentBoxId === post._id ? null : post._id
+                        );
+                        setCommentIdForFetching(post._id);
+                      }}
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      <span>{post.comments?.length || 0}</span>
+                    </button>
+                  </div>
+
+                  {openCommentBoxId === post._id && <Comment id={post._id} />}
                 </div>
               </div>
-
-              {/* Post Content */}
-              <p className="text-gray-200">{post.content}</p>
-
-              {post.image && (
-                <img
-                  src={post.image}
-                  alt="Post"
-                  className="rounded-lg max-h-96 object-contain w-full"
-                />
-              )}
-
-              {post.video && (
-                <video
-                  src={post.video}
-                  controls
-                  className="rounded-lg w-full max-h-96"
-                />
-              )}
-
-              {/* Actions */}
-              <div className="flex space-x-6 text-gray-400 mt-2">
-                <button
-                  className="flex items-center space-x-1 hover:text-red-400 transition-colors"
-                  onClick={() => handleLike(post._id)}
-                >
-                  <Heart
-                    className={`w-5 h-5 ${
-                      post.likes?.includes(user._id) ? "text-red-500" : ""
-                    }`}
-                  />
-                  <span>{post.likes?.length || 0}</span>
-                </button>
-
-                <button
-                  className="flex items-center space-x-1 hover:text-blue-400 transition-colors"
-                  onClick={() => {
-                    setOpenCommentBoxId(
-                      openCommentBoxId === post._id ? null : post._id
-                    );
-                    setCommentIdForFetching(post._id);
-                  }}
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  <span>{post.comments?.length || 0}</span>
-                </button>
-              </div>
-
-              {openCommentBoxId === post._id && <Comment id={post._id} />}
-            </div>
-          ))}
+            ))}
+        </div>
 
         <ToastContainer />
       </div>
