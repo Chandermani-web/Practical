@@ -1,5 +1,6 @@
 import User from '../models/auth.model.js';
 import Friend from '../models/friend.model.js';
+import Notification from '../models/Notification.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
 export const sendFriendRequest = asyncHandler(async (req, res) => {
@@ -32,6 +33,16 @@ export const sendFriendRequest = asyncHandler(async (req, res) => {
     });
 
     await newRequest.save();
+
+    if(newRequest){
+        const newNotification = new Notification({
+            user: receiverId,
+            message: 'You have a new friend request.',
+            type: 'friend_request',
+            fromUser: senderId,
+        });
+        await newNotification.save();
+    }
 
     await User.findByIdAndUpdate(senderId, { $addToSet: { following: receiverId } });
     await User.findByIdAndUpdate(receiverId, { $addToSet: { followers: senderId } });
