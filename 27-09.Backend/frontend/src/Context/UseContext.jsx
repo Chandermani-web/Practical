@@ -11,6 +11,10 @@ export const AppProvider = ({ children }) => {
   const [requests, setRequests] = useState([]);
   const [friendList, setFriendList] = useState([]);
 
+  // notiications
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
   const [auth, setAuth] = useState(() => {
     return localStorage.getItem("auth") === "true" ? true : false;
   });
@@ -110,7 +114,7 @@ export const AppProvider = ({ children }) => {
       console.error("Error fetching friend requests:", err);
     }
   };
-  
+
   const fetchFriendlist = async () => {
     try {
       const res = await fetch("http://localhost:5000/api/friends/list", {
@@ -127,7 +131,22 @@ export const AppProvider = ({ children }) => {
     } catch (err) {
       console.error("Error fetching friend list:", err);
     }
-  }
+  };
+
+  const fetchNotifications = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/notifications", {
+        credentials: "include",
+      });
+      const data = await res.json();
+      console.log(data);
+      setNotifications(data.notifications || []);
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchUser();
@@ -135,6 +154,7 @@ export const AppProvider = ({ children }) => {
     fetchFriendRequests();
     fetchFriendlist();
     fetchAllUser();
+    fetchNotifications();
   }, []);
 
   useEffect(() => {
@@ -152,6 +172,11 @@ export const AppProvider = ({ children }) => {
     setRequests,
     friendList,
     setFriendList,
+    notifications,
+    setNotifications,
+    loading,
+    setLoading,
+    fetchNotifications,
     posts,
     setPosts,
     fetchPosts,
