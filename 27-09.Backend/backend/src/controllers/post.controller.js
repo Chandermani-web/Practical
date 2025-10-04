@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import Post from '../models/post.model.js';
+import Notification from '../models/Notification.model.js';
 import User from '../models/auth.model.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 
@@ -26,12 +27,32 @@ export const createPost = asyncHandler(async (req, res) => {
     try {
         const newPost = new Post({ user, content, image, video });
         await newPost.save({ session });
-        await User.findByIdAndUpdate(user, { $push: { posts: newPost._id } }, { session });
+        await User.findByIdAndUpdate(
+            user,
+            { $push: { posts: newPost._id } },
+            { session }
+        );
+
+        const friends = await User.find({ _id: { $in: user.friends } });
+
+        friends.forEach(async (friend) => {
+            const newNotification = new Notification({
+                user: friend._id, // Friend who will receive notification
+                type: 'post',
+                fromUser: user, // The user who posted
+                post: newPost._id,
+                message: `${req.user.username} uploaded a new post`,
+            });
+            await newNotification.save();
+        });
 
         await session.commitTransaction();
         session.endSession();
 
-        res.status(201).json({ message: 'Post created successfully', post: newPost });
+        res.status(201).json({
+            message: 'Post created successfully',
+            post: newPost,
+        });
     } catch (err) {
         await session.abortTransaction();
         session.endSession();
@@ -39,58 +60,55 @@ export const createPost = asyncHandler(async (req, res) => {
     }
 });
 
-
-
 // Update a post
 export const updatePost = asyncHandler(async (req, res) => {
     const { content, image, video } = req.body;
     const postId = req.params.id;
-    const userId = req.user - _id || req.user; // Assuming user ID is available in req.user
-
-    if (!content) {
-        return res.status(400).json({ message: 'Content is required' });
-    }
+    const userId = req.user._id || req.user;
 
     const post = await Post.findById(postId);
     if (!post) {
         return res.status(404).json({ message: 'Post not found' });
     }
 
-    if (post.user.toString() !== userId) {
+    // Authorization check
+    if (post.user.toString() !== userId.toString()) {
         return res
             .status(403)
-            .json({ message: 'You are not authorized to update this post' });
+            .json({ message: 'Not authorized to update this post' });
     }
 
-    post.content = content;
+    post.content = content || post.content;
     post.image = image || post.image;
     post.video = video || post.video;
-    await post.save();
 
-    res.status(200).json({ message: 'Post updated successfully', post });
+    const updatedPost = await post.save();
+
+    res.status(200).json({
+        message: 'Post updated successfully',
+        success: true,
+        post: updatedPost,
+    });
 });
 
 // Delete a post
+// Delete a post
 export const deletePost = asyncHandler(async (req, res) => {
     const postId = req.params.id;
-    const userId = req.user._id || req.user; // Assuming user ID is available in req.user
-
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
-        return res.status(400).json({ message: 'Invalid post ID' });
-    }
+    const userId = req.user._id || req.user;
 
     const post = await Post.findById(postId);
     if (!post) {
         return res.status(404).json({ message: 'Post not found' });
     }
 
-    if (post.user.toString() !== userId) {
+    // Only author can delete
+    if (post.user.toString() !== userId.toString()) {
         return res
             .status(403)
-            .json({ message: 'You are not authorized to delete this post' });
+            .json({ message: 'Not authorized to delete this post' });
     }
 
-    // start a transaction
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
@@ -102,11 +120,15 @@ export const deletePost = asyncHandler(async (req, res) => {
         );
         await session.commitTransaction();
         session.endSession();
-        res.status(200).json({ message: 'Post deleted successfully' });
-    } catch (err) {
+
+        res.status(200).json({
+            message: 'Post deleted successfully',
+            success: true,
+        });
+    } catch (error) {
         await session.abortTransaction();
         session.endSession();
-        res.status(500).json({ message: 'Server Error', error: err.message });
+        res.status(500).json({ message: 'Server Error', error: error.message });
     }
 });
 
@@ -121,15 +143,43 @@ export const likeAndUnlikePost = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'Post not found' });
     }
 
-    if(post.likes.includes(userId)){
+    if (post.likes.includes(userId)) {
         post.likes.pull(userId);
         await post.save();
-        return res.status(200).json({ message: 'Post unliked successfully', success: true, updatedLikes: post.likes, post });
-    }
-    else{
+        const newNotification = new Notification({
+            user: post.user,
+            message: 'Someone unliked your post.',
+            type: 'post_unlike',
+            fromUser: userId,
+            post: postId,
+            message: `${req.user.username} liked your post`,
+        });
+        await newNotification.save();
+        return res.status(200).json({
+            message: 'Post unliked successfully',
+            success: true,
+            updatedLikes: post.likes,
+            post,
+        });
+    } else {
         post.likes.push(userId);
         await post.save();
-        return res.status(200).json({ message: 'Post liked successfully', success: true, updatedLikes: post.likes, post });
+
+        const newNotification = new Notification({
+            user: post.user,
+            message: 'Someone unliked your post.',
+            type: 'post_unlike',
+            fromUser: userId,
+            post: postId,
+            message: `${req.user.username} unliked your post`,
+        });
+        await newNotification.save();
+        return res.status(200).json({
+            message: 'Post liked successfully',
+            success: true,
+            updatedLikes: post.likes,
+            post,
+        });
     }
 });
 
@@ -152,7 +202,6 @@ export const getPostById = asyncHandler(async (req, res) => {
     res.status(200).json(post);
 });
 
-
 // Add a comment to a post
 export const addComment = asyncHandler(async (req, res) => {
     const postId = req.params.id;
@@ -170,12 +219,31 @@ export const addComment = asyncHandler(async (req, res) => {
 
     post.comments.push({ user: userId, text });
     await post.save();
-    res.status(201).json({ message: 'Comment added successfully', updatedComment: post.comments, post });
+
+    if (post.user.toString() !== userId.toString()) {
+        const newNotification = new Notification({
+            user: post.user,
+            type: 'comment',
+            fromUser: userId,
+            post: post._id,
+            message: `${req.user.username} commented on your post`,
+        });
+        await newNotification.save();
+    }
+
+    res.status(201).json({
+        message: 'Comment added successfully',
+        updatedComment: post.comments,
+        post,
+    });
 });
 
 export const getComments = asyncHandler(async (req, res) => {
     const postId = req.params.id;
-    const post = await Post.findById(postId).populate('comments.user', 'username avatar');
+    const post = await Post.findById(postId).populate(
+        'comments.user',
+        'username avatar'
+    );
     if (!post) {
         return res.status(404).json({ message: 'Post not found' });
     }
@@ -195,9 +263,11 @@ export const deleteComment = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'Comment not found' });
     }
     if (comment.user.toString() !== userId) {
-        return res.status(403).json({ message: 'You are not authorized to delete this comment' });
+        return res
+            .status(403)
+            .json({ message: 'You are not authorized to delete this comment' });
     }
     comment.remove();
     await post.save();
     res.status(200).json({ message: 'Comment deleted successfully', post });
-})
+});
