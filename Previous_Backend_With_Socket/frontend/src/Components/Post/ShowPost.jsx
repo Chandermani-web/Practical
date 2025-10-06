@@ -12,6 +12,7 @@ const ShowPost = () => {
     posts,
     user,
     setPosts,
+    setComments,
     // fetchPosts,
     // fetchComments,
     setCommentIdForFetching,
@@ -41,6 +42,7 @@ const ShowPost = () => {
             : p
         )
       );
+      setComments((prev)=>([...prev, comment])); // also update global comments state
     });
 
     // NEW: listener for deleted comment
@@ -50,6 +52,7 @@ const ShowPost = () => {
           p._id === postId ? { ...p, comments: updatedComments } : p
         )
       );
+      setComments((prev)=>(prev.filter(c => c.postId !== postId))); // also update global comments state
     });
 
     return () => {
@@ -93,13 +96,6 @@ const ShowPost = () => {
       console.error("Error liking post:", err);
     }
   };
-
-  // useEffect(() => {
-  //   if (openCommentBoxId) {
-  //     fetchComments();
-  //   }
-  //   fetchPosts();
-  // }, [openCommentBoxId]);
 
   if (!posts) {
     return (

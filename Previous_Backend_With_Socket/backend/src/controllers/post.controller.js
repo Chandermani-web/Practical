@@ -148,9 +148,10 @@ export const likeAndUnlikePost = asyncHandler(async (req, res) => {
         return res.status(404).json({ message: 'Post not found' });
     }
 
-    if (post.likes.includes(userId)) {
+    if (post.likes.includes(userId)) { 
         post.likes.pull(userId);
         await post.save();
+        io.emit('updateLikes', { postId: post._id, likes: post.likes });
         return res.status(200).json({
             message: 'Post Unliked successfully',
             success: true,

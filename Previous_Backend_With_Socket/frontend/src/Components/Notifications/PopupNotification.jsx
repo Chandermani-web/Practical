@@ -29,6 +29,10 @@ const PopupNotification = ({ data, onClose }) => {
           {data.type === "like" && (
             <div className="mt-2 flex items-center gap-2 bg-blue-500/5 border border-blue-500/20 rounded-xl p-2">
               <ThumbsUp className="w-5 h-5 text-blue-400 absolute top-0 right-0" />
+              <p className="text-gray-400 text-xs">
+                {data.message || "Liked your post"}
+              </p>
+              
               {data.post?.image && (
                 <img
                   src={data.post.image}
@@ -36,6 +40,13 @@ const PopupNotification = ({ data, onClose }) => {
                   alt="Post"
                 />
               )}
+              {data.post?.video && (
+                  <video
+                    src={data.post.video}
+                    className="h-12 w-12 object-cover rounded-lg border border-white/10"
+                    alt="Post"
+                  />
+                )}
             </div>
           )}
 
@@ -68,7 +79,8 @@ const PopupNotification = ({ data, onClose }) => {
                     src={data.post.image}
                     className="h-12 w-12 object-cover rounded-lg border border-white/10"
                     alt="Post"
-                  />
+                    />
+                    <p>{data.post.content || "New comment received"}</p>
                 </div>
               )}
 
