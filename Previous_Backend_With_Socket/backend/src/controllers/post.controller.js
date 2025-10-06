@@ -187,7 +187,7 @@ export const likeAndUnlikePost = asyncHandler(async (req, res) => {
 // Get all posts
 export const getAllPosts = asyncHandler(async (req, res) => {
     const posts = await Post.find()
-        .populate('user', 'username profilePic ')
+        .populate('user', 'username profilePic')
         .sort({ createdAt: -1 });
     res.status(200).json(posts);
 });
@@ -297,11 +297,6 @@ export const deleteComment = asyncHandler(async (req, res) => {
     io.emit('deleteComment', {
         postId,
         commentId,
-        updatedComments: populatedPostAfterDelete.comments,
-    });
-
-    res.status(200).json({
-        message: 'Comment deleted successfully',
         updatedComments: populatedPostAfterDelete.comments,
     });
 

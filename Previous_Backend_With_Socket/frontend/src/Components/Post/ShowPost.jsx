@@ -8,15 +8,8 @@ import { useSocket } from "../../Context/SocketContext";
 const ShowPost = () => {
   const [openCommentBoxId, setOpenCommentBoxId] = useState(null); // store postId instead of boolean
   const [expandedPostId, setExpandedPostId] = useState(null);
-  const {
-    posts,
-    user,
-    setPosts,
-    setComments,
-    // fetchPosts,
-    // fetchComments,
-    setCommentIdForFetching,
-  } = useContext(AppContext);
+  const { posts, user, setPosts, setComments, setCommentIdForFetching } =
+    useContext(AppContext);
 
   const { socket } = useSocket();
 
@@ -42,17 +35,20 @@ const ShowPost = () => {
             : p
         )
       );
-      setComments((prev)=>([...prev, comment])); // also update global comments state
+      setComments((prev) => [...prev, comment]); // also update global comments state
     });
 
     // NEW: listener for deleted comment
-    socket.on("deleteComment", ({ postId, updatedComments }) => {
+    socket.on("deleteComment", ({ postId, commentId, updatedComments }) => {
+      // Update posts array
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId ? { ...p, comments: updatedComments } : p
         )
       );
-      setComments((prev)=>(prev.filter(c => c.postId !== postId))); // also update global comments state
+
+      // Remove only that comment from the global comments state
+      setComments((prev) => prev.filter((c) => c._id !== commentId));
     });
 
     return () => {
@@ -205,6 +201,8 @@ const ShowPost = () => {
 
               {/* Only open clicked post's comment box */}
               {openCommentBoxId === post._id && <Comment id={post._id} />}
+
+              {/* display likes and comments */}
             </div>
           ))}
         </div>

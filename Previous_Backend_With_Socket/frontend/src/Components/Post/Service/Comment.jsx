@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import AppContext from "../../../Context/UseContext";
 
 const Comment = ({ id }) => {
@@ -46,11 +46,11 @@ const Comment = ({ id }) => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to delete comment");
+      console.log(data);
 
       // Update posts state with returned populated updatedComments
       if (data.updatedComments) {
-        setComments((prev) => prev.map((p) => (p._id === id ? { ...p, comments: data.updatedComments } : p)));
-        commentsArr = data.updatedComments;
+        setComments((prev) => prev.filter((c) => c._id !== commentId));
       } else {
         // fallback: remove locally by id
         setComments((prev) => prev.map((p) => (p._id === id ? { ...p, comments: (p.comments || []).filter(c => c._id !== commentId) } : p)));
@@ -59,10 +59,6 @@ const Comment = ({ id }) => {
       console.error(err);
     }
   };
-
-  useEffect(() => {
-    console.log(commentsArr);
-  }, [commentsArr]);
 
   return (
     <div className="mt-4">
