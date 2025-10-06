@@ -11,6 +11,8 @@ import Connection from "./pages/Connection";
 import User_Profile from "./Components/Connections/Page/User_Profile";
 import Notification from "./pages/Notification";
 import ShowPost from "./Components/Post/ShowPost";
+import NotificationPopupManager from "./Context/NotificationProvider";
+
 
 const App = () => {
   const { auth } = useContext(AppContext);
@@ -30,6 +32,7 @@ const App = () => {
         <Route path="/profile/:id" element={auth ? <User_Profile /> : <Login />} />
         <Route path="/notifications" element={auth ? <Notification /> : <Login />} />
       </Routes>
+      <NotificationPopupManager />
     </div>
   );
 };

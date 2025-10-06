@@ -19,7 +19,6 @@ export const createNotification = asyncHandler(
     const populatedNotification = await Notification.findById(newNotification._id)
       .populate("fromUser", "username profilePic")
       .populate("post", "image video content comments");
-
     // Emit to the specific user's room
     io.to(toUser.toString()).emit("newNotification", populatedNotification);
 

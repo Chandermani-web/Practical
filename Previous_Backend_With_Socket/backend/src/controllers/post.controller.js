@@ -34,7 +34,7 @@ export const createPost = asyncHandler(async (req, res) => {
             { session }
         );
 
-        io.emit("newPost", newPost);
+        io.emit('newPost', newPost);
 
         // ✅ Fetch the full user document first
         const loggedInUser = await User.findById(user).populate('friends');
@@ -162,16 +162,16 @@ export const likeAndUnlikePost = asyncHandler(async (req, res) => {
         await post.save();
 
         // Emit to all users
-        io.emit("updateLikes", { postId: post._id, likes: post.likes });
+        io.emit('updateLikes', { postId: post._id, likes: post.likes });
 
-        if(userId.toString() !== post.user.toString()){
+        if (userId.toString() !== post.user.toString()) {
             await createNotification({
-            toUser: post.user,
-            type: 'like',
-            fromUser: userId,
-            post: postId,
-            message: `${req.user.username} liked your post`,
-        });
+                toUser: post.user,
+                type: 'like',
+                fromUser: userId,
+                post: postId,
+                message: `${req.user.username} liked your post`,
+            });
         }
 
         return res.status(200).json({
@@ -203,52 +203,53 @@ export const getPostById = asyncHandler(async (req, res) => {
 });
 
 // Add a comment to a post
-// Add a comment to a post
+// addComment (backend)
 export const addComment = asyncHandler(async (req, res) => {
     const postId = req.params.id;
     const userId = req.user._id || req.user;
     const { text } = req.body;
 
-    if (!text) {
+    if (!text)
         return res.status(400).json({ message: 'Comment text is required' });
-    }
 
     const post = await Post.findById(postId);
-    if (!post) {
-        return res.status(404).json({ message: 'Post not found' });
-    }
+    if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    // Add comment to post
+    // push new comment and save
     const newComment = { user: userId, text };
     post.comments.push(newComment);
-
-    // Save post
     await post.save();
 
-    // Get the ObjectId of the newly added comment
-    const addedComment = post.comments[post.comments.length - 1];
+    // Re-fetch the post and populate the comments.user so emitted comment has username/profilePic
+    const populatedPost = await Post.findById(postId)
+        .populate('comments.user', 'username profilePic')
+        .populate('user', 'username profilePic'); // optional, if needed in client
 
-    io.emit("newComment", { postId: post._id, comment: addedComment });
+    const populatedComment =
+        populatedPost.comments[populatedPost.comments.length - 1];
 
-    // Send notification only if the comment is on someone else's post
+    // Emit the single populated comment
+    io.emit('newComment', { postId: post._id, comment: populatedComment });
+
+    // Notify post owner (if needed)
     if (post.user.toString() !== userId.toString()) {
         await createNotification({
-            toUser: post.user,        // post owner
-            fromUser: userId,         // commenter
+            toUser: post.user,
+            fromUser: userId,
             type: 'comment',
             post: post._id,
-            comment: addedComment._id,  // <-- ObjectId of the comment
+            comment: populatedComment._id,
             message: `${req.user.username} commented on your post`,
         });
     }
 
     res.status(201).json({
         message: 'Comment added successfully',
-        updatedComments: post.comments,
-        post,
+        comment: populatedComment, // populated single comment
+        updatedComments: populatedPost.comments, // populated comments array
+        post: populatedPost,
     });
 });
-
 
 export const getComments = asyncHandler(async (req, res) => {
     const postId = req.params.id;
@@ -262,29 +263,49 @@ export const getComments = asyncHandler(async (req, res) => {
     res.status(200).json(post.comments);
 });
 
-
 export const deleteComment = asyncHandler(async (req, res) => {
-  const postId = req.params.id;
-  const commentId = req.params.commentId;
-  const userId = String(req.user._id);
+    const postId = req.params.id;
+    const commentId = req.params.commentId;
+    const userId = String(req.user._id);
 
-  const post = await Post.findById(postId);
-  if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-  }
+    const post = await Post.findById(postId);
+    if (!post) {
+        return res.status(404).json({ message: 'Post not found' });
+    }
 
-  const comment = post.comments.id(commentId);
-  if (!comment) {
-      return res.status(404).json({ message: 'Comment not found' });
-  }
+    const comment = post.comments.id(commentId);
+    if (!comment) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
 
-  if (String(comment.user) !== userId) {
-      return res.status(403).json({ message: 'You are not authorized to delete this comment' });
-  }
+    if (String(comment.user) !== userId) {
+        return res
+            .status(403)
+            .json({ message: 'You are not authorized to delete this comment' });
+    }
 
-  // ✅ Instead of comment.remove(), use pull()
-  post.comments.pull(commentId);
-  await post.save();
+    // ✅ Instead of comment.remove(), use pull()
+    post.comments.pull(commentId);
+    await post.save();
 
-  res.status(200).json({ message: 'Comment deleted successfully', updatedComments: post.comments });
+    // After saving
+    const populatedPostAfterDelete = await Post.findById(postId).populate(
+        'comments.user',
+        'username profilePic'
+    );
+    io.emit('deleteComment', {
+        postId,
+        commentId,
+        updatedComments: populatedPostAfterDelete.comments,
+    });
+
+    res.status(200).json({
+        message: 'Comment deleted successfully',
+        updatedComments: populatedPostAfterDelete.comments,
+    });
+
+    res.status(200).json({
+        message: 'Comment deleted successfully',
+        updatedComments: post.comments,
+    });
 });

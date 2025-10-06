@@ -12,8 +12,8 @@ const ShowPost = () => {
     posts,
     user,
     setPosts,
-    fetchPosts,
-    fetchComments,
+    // fetchPosts,
+    // fetchComments,
     setCommentIdForFetching,
   } = useContext(AppContext);
 
@@ -22,25 +22,32 @@ const ShowPost = () => {
   useEffect(() => {
     if (!socket) return;
 
-    // Listen for new posts
     socket.on("newPost", (post) => {
       setPosts((prev) => [post, ...prev]);
     });
 
-    // Listen for updated likes
     socket.on("updateLikes", ({ postId, likes }) => {
       setPosts((prev) =>
         prev.map((p) => (p._id === postId ? { ...p, likes } : p))
       );
     });
 
-    // Listen for new comments
+    // NEW: correct listener for new populated comment
     socket.on("newComment", ({ postId, comment }) => {
       setPosts((prev) =>
         prev.map((p) =>
           p._id === postId
-            ? { ...p, comments: [...(p.comments || []), comment] }
+            ? { ...p, comments: [...(p.comments || []), comment] } // append to end (latest = last index)
             : p
+        )
+      );
+    });
+
+    // NEW: listener for deleted comment
+    socket.on("deleteComment", ({ postId, updatedComments }) => {
+      setPosts((prev) =>
+        prev.map((p) =>
+          p._id === postId ? { ...p, comments: updatedComments } : p
         )
       );
     });
@@ -49,6 +56,7 @@ const ShowPost = () => {
       socket.off("newPost");
       socket.off("updateLikes");
       socket.off("newComment");
+      socket.off("deleteComment");
     };
   }, [socket, setPosts]);
 
@@ -86,12 +94,12 @@ const ShowPost = () => {
     }
   };
 
-  useEffect(() => {
-    if (openCommentBoxId) {
-      fetchComments();
-    }
-    fetchPosts();
-  }, [openCommentBoxId]);
+  // useEffect(() => {
+  //   if (openCommentBoxId) {
+  //     fetchComments();
+  //   }
+  //   fetchPosts();
+  // }, [openCommentBoxId]);
 
   if (!posts) {
     return (

@@ -202,7 +202,7 @@ const ShowNotification = () => {
                     <div className="mt-3 flex items-center gap-2 bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-2.5">
                       <MessageCircle className="w-5 h-5 text-yellow-400" />
                       <p className="text-gray-400 text-xs">
-                        {n.post?.comments?.[0].text || "New comment received"}
+                        {n.post?.comments?.[n.post?.comments?.length - 1].text || "New comment received"}
                       </p>
                     </div>
 
